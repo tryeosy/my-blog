@@ -1,27 +1,23 @@
 ---
-layout: home
+layout: page
 ---
 
 <script setup>
 import { ref, computed } from 'vue'
 import { withBase } from 'vitepress'
-
-// 读取 fetch-issues.js 生成的文章数据
 import postsData from './.vitepress/posts-data.json'
 
 // 当前选中的标签
 const selectedTag = ref('')
 
-// 确保文章数据一定是数组
-const posts = ref(
-  Array.isArray(postsData) ? postsData : []
-)
+// 确保文章数据是数组
+const posts = Array.isArray(postsData) ? postsData : []
 
 // 获取全部不重复标签
 const allTags = computed(() => {
   const tags = new Set()
 
-  posts.value.forEach((post) => {
+  posts.forEach((post) => {
     if (post && Array.isArray(post.tags)) {
       post.tags.forEach((tag) => {
         if (tag) {
@@ -34,13 +30,13 @@ const allTags = computed(() => {
   return Array.from(tags)
 })
 
-// 根据选中的标签过滤文章
+// 按标签筛选文章
 const filteredPosts = computed(() => {
   if (!selectedTag.value) {
-    return posts.value
+    return posts
   }
 
-  return posts.value.filter((post) => {
+  return posts.filter((post) => {
     return (
       post &&
       Array.isArray(post.tags) &&
@@ -48,25 +44,40 @@ const filteredPosts = computed(() => {
     )
   })
 })
+
+// 生成适用于 GitHub Pages 的文章地址
+const getPostLink = (postPath) => {
+  if (!postPath) {
+    return withBase('/')
+  }
+
+  const path = postPath.endsWith('.html')
+    ? postPath
+    : `${postPath}.html`
+
+  return withBase(path)
+}
 </script>
 
-<div class="blog-page">
+<main class="blog-page">
 
-  <h1 class="blog-heading">
-    🚀 欢迎来到我的独立博客
-  </h1>
+  <section class="blog-header">
+    <h1>🚀 欢迎来到我的独立博客</h1>
+    <p>记录学习、技术与生活中的点滴。</p>
+  </section>
 
-  <!-- 标签筛选导航栏 -->
-  <div
+  <!-- 标签筛选 -->
+  <nav
     v-if="allTags.length > 0"
     class="tag-container"
+    aria-label="文章标签筛选"
   >
     <button
       type="button"
       :class="{ active: selectedTag === '' }"
       @click="selectedTag = ''"
     >
-      <span>全部文章</span>
+      全部文章
     </button>
 
     <button
@@ -78,35 +89,33 @@ const filteredPosts = computed(() => {
     >
       <span># {{ tag }}</span>
     </button>
+  </nav>
+
+  <!-- 没有文章 -->
+  <div
+    v-if="filteredPosts.length === 0"
+    class="no-posts"
+  >
+    🌟 暂时没有找到文章。请确认 GitHub Issue 处于 Open 状态，
+    并等待 Actions 重新部署完成。
   </div>
 
   <!-- 文章列表 -->
-  <div class="post-list">
-
-    <!-- 没有文章时的提示 -->
-    <div
-      v-if="filteredPosts.length === 0"
-      class="no-posts"
-    >
-      🌟 📋 提示：你目前还没有在 GitHub Issues
-      中发布任何公开文章。快去你的仓库新建一个议题（Issue），
-      随便写篇博客并打个标签试试吧！
-    </div>
-
-    <!-- 单篇文章 -->
+  <section
+    v-else
+    class="post-list"
+  >
     <article
       v-for="post in filteredPosts"
       :key="post.path"
       class="post-item"
     >
-      <div class="post-meta">
-        <span class="post-date">
-          📅 {{ post.date || '暂无日期' }}
-        </span>
+      <div class="post-date">
+        📅 {{ post.date || '暂无日期' }}
       </div>
 
       <a
-        :href="withBase(post.path)"
+        :href="getPostLink(post.path)"
         class="post-title"
       >
         {{ post.title || '未命名文章' }}
@@ -125,43 +134,58 @@ const filteredPosts = computed(() => {
         </span>
       </div>
     </article>
+  </section>
 
-  </div>
-
-</div>
+</main>
 
 <style>
 .blog-page {
   width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 45px 24px 80px;
+  box-sizing: border-box;
 }
 
-/* 页面标题 */
-.blog-heading {
-  margin: 0 0 30px;
+.blog-header {
+  margin-bottom: 36px;
+}
+
+.blog-header h1 {
+  margin: 0 0 12px;
   padding: 0;
-  border: 0;
-  font-size: 2.2em;
-  line-height: 1.3;
+  border: none;
+  font-size: 38px;
+  line-height: 1.35;
+  font-weight: 800;
   color: var(--vp-c-text-1);
 }
 
-/* 标签筛选区域 */
+.blog-header p {
+  margin: 0;
+  font-size: 16px;
+  color: var(--vp-c-text-2);
+}
+
 .tag-container {
-  margin: 30px 0;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin: 28px 0 32px;
 }
 
 .tag-container button {
-  padding: 6px 16px;
+  padding: 7px 16px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 20px;
   background: var(--vp-c-bg-mute);
   color: var(--vp-c-text-1);
   cursor: pointer;
-  font-size: 0.9em;
-  transition: all 0.2s ease;
+  font-size: 14px;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .tag-container button:hover {
@@ -174,42 +198,31 @@ const filteredPosts = computed(() => {
   color: white;
 }
 
-/* 文章列表 */
 .post-list {
-  margin-top: 20px;
+  width: 100%;
 }
 
-/* 无文章提示 */
-.no-posts {
-  padding: 40px 0;
-  color: var(--vp-c-text-2);
-  font-style: italic;
-  line-height: 1.8;
-}
-
-/* 单篇文章 */
 .post-item {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--vp-c-divider);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding: 24px 0 28px;
+  border-bottom: 1px solid var(--vp-c-divider);
 }
 
-/* 日期 */
-.post-meta {
-  font-size: 0.85em;
+.post-date {
   color: var(--vp-c-text-2);
+  font-size: 15px;
 }
 
-/* 文章标题 */
 .post-title {
   display: inline-block;
   width: fit-content;
-  font-size: 1.3em;
-  font-weight: 600;
-  text-decoration: none;
   color: var(--vp-c-text-1);
+  font-size: 27px;
+  line-height: 1.4;
+  font-weight: 700;
+  text-decoration: none;
   transition: color 0.2s ease;
 }
 
@@ -218,7 +231,6 @@ const filteredPosts = computed(() => {
   text-decoration: none;
 }
 
-/* 标签 */
 .post-tags {
   display: flex;
   flex-wrap: wrap;
@@ -226,21 +238,32 @@ const filteredPosts = computed(() => {
 }
 
 .tag-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--vp-c-brand-3);
+  padding: 5px 10px;
+  border-radius: 5px;
+  background: var(--vp-c-brand-soft);
   color: var(--vp-c-brand-1);
-  font-size: 0.8em;
+  font-size: 14px;
 }
 
-/* 手机适配 */
+.no-posts {
+  margin-top: 25px;
+  padding: 30px 0;
+  color: var(--vp-c-text-2);
+  font-style: italic;
+  line-height: 1.8;
+}
+
 @media (max-width: 640px) {
-  .blog-heading {
-    font-size: 1.8em;
+  .blog-page {
+    padding: 30px 20px 60px;
+  }
+
+  .blog-header h1 {
+    font-size: 30px;
   }
 
   .post-title {
-    font-size: 1.15em;
+    font-size: 23px;
   }
 }
 </style>
