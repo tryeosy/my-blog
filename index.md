@@ -1,5 +1,7 @@
 ---
 layout: page
+title: Tryeosy的一隅
+titleTemplate: false
 ---
 
 <script setup>
