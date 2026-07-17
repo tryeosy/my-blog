@@ -233,15 +233,22 @@ export default defineConfig({
        provider: 'local',
 
 options: {
-    // 默认打开详细结果，但右上角列表开关仍然保留
-    detailedView: true,
-
     miniSearch: {
+      options: {
+        tokenize: tokenizeForSearch
+      },
+
       searchOptions: {
+        // 查询中的各个中文片段都需要匹配
+        combineWith: 'AND',
+
+        // 保留模糊搜索
         fuzzy: 0.2,
+
+        // 支持前缀搜索
         prefix: true,
 
-        // 标题权重较高，正文同样参与搜索
+        // 标题优先，正文也参与匹配
         boost: {
           title: 8,
           text: 3,
@@ -259,15 +266,15 @@ options: {
           },
 
           modal: {
-            displayDetails: '显示详细结果',
+            displayDetails: '显示详细列表',
             resetButtonTitle: '清除搜索',
             backButtonTitle: '关闭搜索',
             noResultsText: '没有找到相关文章',
 
             footer: {
-              selectText: '打开',
+              selectText: '选择',
               selectKeyAriaLabel: '回车',
-              navigateText: '选择',
+              navigateText: '导航',
               navigateUpKeyAriaLabel: '上箭头',
               navigateDownKeyAriaLabel: '下箭头',
               closeText: '关闭',
