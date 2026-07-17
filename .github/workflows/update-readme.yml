@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: read # 显式赋予读取 Issues 的权限
 
     steps:
       - name: Checkout repository
@@ -17,25 +18,20 @@ jobs:
 
       - name: Update README List
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. 抓取最近的 10 个公开 Issue（过滤掉 PR）并格式化为 Markdown 列表
-          # 注意：这里的 trycosy/my-blog 已经直接写在里面了
-          curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://github.com" \
+          # 1. 使用 GitHub 官方原生命令行工具直接提取 Issue 列表
+          gh issue list --repo trycosy/my-blog --limit 10 --json title,url,createdAt --template '{{range .}}- [{{.title}}]({{.url}}) — _{{substring .createdAt 0 10}}_\n{{end}}' > list.txt
 
-            | jq -r '[.[] | select(.pull_request == null)] | .[:10] | .[] | "- [\(.title)](\(.html_url)) — _" + (.created_at | split("T")[0]) + "_"' > list.txt
-
-          # 如果没有内容，则写入暂无文章
+          # 如果没有文章，则写入默认提示
           if [ ! -s list.txt ]; then
             echo "- 暂无文章" > list.txt
           fi
 
-          # 2. 将列表内容插入到 README.md 的锚点中
-          # 使用全新的锚点标记进行替换
+          # 2. 将列表插入到 README.md 对应的锚点中
           sed -i '/<!-- BLOG-LIST-START -->/,/<!-- BLOG-LIST-END -->/{//!d;};/<!-- BLOG-LIST-START -->/r list.txt' README.md
 
-          # 3. 提交代码
+          # 3. 提交并推送
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@://github.com"
           git add README.md
