@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-const REPO = process.env.GITHUB_REPOSITORY; 
+const REPO = 'tryeasy/my-blog';
+
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 async function fetchIssues() {
