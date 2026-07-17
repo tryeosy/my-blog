@@ -1,0 +1,43 @@
+name: Deploy VitePress Blog
+on:
+  issues:
+    types: [opened, edited, deleted, labeled, unlabeled] # 当你在Issues里写文章、改标签时自动触发
+  workflow_dispatch: # 允许你手动在网页点按钮触发
+
+# 给予 Actions 权限来读取 Issues 并发布网页
+permissions:
+  contents: write
+  issues: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install VitePress
+        run: npm install vitepress vue
+
+      - name: Fetch Issues to Markdown
+        run: node fetch-issues.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Site
+        run: npx vitepress build
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .vitepress/dist
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
