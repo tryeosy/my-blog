@@ -1,3 +1,24 @@
+  name: Update README with Issues
+
+on:
+  issues:
+    types: [opened, edited, deleted, labeled, unlabeled, milestones]
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Update README List
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
