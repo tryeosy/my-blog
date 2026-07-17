@@ -15,13 +15,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update README with GitHub Issues
-        uses: gautamkrishnar/blog-post-workflow@master
-        with:
-          # 👇 看这里！你的仓库路径现在清清楚楚写在下面这一行了：
-          repo_path: "trycosy/my-blog"
-          
-          feed_list: "https://github.com"
-          max_post_count: 10
-          template: "- [$title]($url) — _$date_"
-          date_format: "yyyy-mm-dd"
+      - name: Update README List
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1. 抓取最近的 10 个公开 Issue（过滤掉 PR）并格式化为 Markdown 列表
+          # 注意：这里的 trycosy/my-blog 已经直接写在里面了
+          curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://github.com" \
+
+            | jq -r '[.[] | select(.pull_request == null)] | .[:10] | .[] | "- [\(.title)](\(.html_url)) — _" + (.created_at | split("T")[0]) + "_"' > list.txt
+
+          # 如果没有内容，则写入暂无文章
+          if [ ! -s list.txt ]; then
+            echo "- 暂无文章" > list.txt
+          fi
+
+          # 2. 将列表内容插入到 README.md 的锚点中
+          # 使用全新的锚点标记进行替换
+          sed -i '/<!-- BLOG-LIST-START -->/,/<!-- BLOG-LIST-END -->/{//!d;};/<!-- BLOG-LIST-START -->/r list.txt' README.md
+
+          # 3. 提交代码
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@://github.com"
+          git add README.md
+          git commit -m "chore: update blog list [skip ci]" || echo "No changes to commit"
+          git push
