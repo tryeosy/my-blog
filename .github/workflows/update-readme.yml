@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: read # 显式赋予读取 Issues 的权限
+      issues: read
 
     steps:
       - name: Checkout repository
@@ -20,8 +20,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. 使用 GitHub 官方原生命令行工具直接提取 Issue 列表
-          gh issue list --repo trycosy/my-blog --limit 10 --json title,url,createdAt --template '{{range .}}- [{{.title}}]({{.url}}) — _{{substring .createdAt 0 10}}_\n{{end}}' > list.txt
+          # 1. 使用 ${{ github.repository }} 动态获取当前仓库，绝对不会认错
+          gh issue list --repo "${{ github.repository }}" --limit 10 --json title,url,createdAt --template '{{range .}}- [{{.title}}]({{.url}}) — _{{substring .createdAt 0 10}}_\n{{end}}' > list.txt
 
           # 如果没有文章，则写入默认提示
           if [ ! -s list.txt ]; then
