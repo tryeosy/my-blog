@@ -1,9 +1,15 @@
 {
   "name": "my-github-blog",
+  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev",
+    "dev": "node fetch-issues.js && vitepress dev",
     "build": "node fetch-issues.js && vitepress build",
     "serve": "vitepress preview"
+  },
+  "dependencies": {
+    "@giscus/vue": "3.1.1",
+    "vitepress": "1.6.4",
+    "vue": "^3.5.0"
   }
 }
