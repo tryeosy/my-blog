@@ -187,11 +187,28 @@ async function fetchIssues() {
         ''
       ].join('\n')
 
-      fs.writeFileSync(
-        path.join(postsDir, `${issue.number}.md`),
-        `${frontMatter}\n${issue.body || ''}\n`,
-        'utf-8'
-      )
+      // 清理标题中的换行，避免破坏 Markdown 一级标题
+const markdownTitle = title
+  .replace(/[\r\n]+/g, ' ')
+  .replace(/#/g, '\\#')
+  .trim()
+
+const markdownBody = issue.body || ''
+
+// 将 Issue 标题真正写成文章的一级标题
+const markdownContent = [
+  frontMatter,
+  `# ${markdownTitle}`,
+  '',
+  markdownBody,
+  ''
+].join('\n')
+
+fs.writeFileSync(
+  path.join(postsDir, `${issue.number}.md`),
+  markdownContent,
+  'utf-8'
+)
 
       postsMetadata.push({
         title,
