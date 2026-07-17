@@ -2,6 +2,7 @@
 layout: page
 title: Tryeosy的一隅
 titleTemplate: false
+search: false
 ---
 
 <script setup>
