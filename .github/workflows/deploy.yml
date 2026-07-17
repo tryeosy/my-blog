@@ -1,19 +1,45 @@
 name: Deploy VitePress Blog
-on:
-  issues:
-    types: [opened, edited, deleted, labeled, unlabeled] # 当你在Issues里写文章、改标签时自动触发
-  workflow_dispatch: # 允许你手动在网页点按钮触发
 
-# 给予 Actions 权限来读取 Issues 并发布网页
+on:
+  # 修改代码并提交到 main 分支时，自动部署
+  push:
+    branches:
+      - main
+
+  # Issue 发生变化时，自动部署
+  issues:
+    types:
+      - opened
+      - edited
+      - deleted
+      - closed
+      - reopened
+      - labeled
+      - unlabeled
+
+  # 保留 Actions 页面中的手动运行按钮
+  workflow_dispatch:
+
+# 工作流所需权限
 permissions:
-  contents: write
+  contents: read
   issues: read
   pages: write
   id-token: write
 
+# 避免连续修改时同时运行多个部署任务
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,4 +66,5 @@ jobs:
           path: .vitepress/dist
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
