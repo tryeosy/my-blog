@@ -1,0 +1,16 @@
+.blog-comments {
+  margin-top: 48px;
+  padding-top: 28px;
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.blog-comments h2 {
+  margin: 0 0 20px;
+  border: 0;
+  font-size: 1.35rem;
+}
+
+.comments-not-configured {
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+}
