@@ -1,8 +1,9 @@
 # 欢迎来到我的个人博客 🚀
 ## 📝 最新文章
 
-<!-- BLOG-POST-LIST:START -->
-<!-- BLOG-POST-LIST:END -->
+<!-- BLOG-LIST-START -->
+
+<!-- BLOG-LIST-END -->
 
 
 ### 🛠️ 关于我
