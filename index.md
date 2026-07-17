@@ -12,10 +12,12 @@ import postsData from './.vitepress/posts-data.json'
 // 当前选中的标签
 const selectedTag = ref('')
 
-// 确保导入的数据一定是数组
-const posts = ref(Array.isArray(postsData) ? postsData : [])
+// 确保文章数据一定是数组
+const posts = ref(
+  Array.isArray(postsData) ? postsData : []
+)
 
-// 获取所有不重复的标签
+// 获取全部不重复标签
 const allTags = computed(() => {
   const tags = new Set()
 
@@ -48,83 +50,101 @@ const filteredPosts = computed(() => {
 })
 </script>
 
-# 🚀 欢迎来到我的独立博客
+<div class="blog-page">
 
-<!-- 标签筛选导航栏 -->
-<div
-  v-if="allTags.length > 0"
-  class="tag-container"
->
-  <button
-    :class="{ active: selectedTag === '' }"
-    @click="selectedTag = ''"
-  >
-    全部文章
-  </button>
+  <h1 class="blog-heading">
+    🚀 欢迎来到我的独立博客
+  </h1>
 
-  <button
-    v-for="tag in allTags"
-    :key="tag"
-    :class="{ active: selectedTag === tag }"
-    @click="selectedTag = tag"
-  >
-    # {{ tag }}
-  </button>
-</div>
-
-<!-- 文章列表展示 -->
-<div class="post-list">
-
-  <!-- 没有文章时的提示 -->
+  <!-- 标签筛选导航栏 -->
   <div
-    v-if="filteredPosts.length === 0"
-    class="no-posts"
+    v-if="allTags.length > 0"
+    class="tag-container"
   >
-    🌟 📋 提示：你目前还没有在 GitHub Issues
-    中发布任何公开文章。快去你的仓库新建一个议题（Issue），
-    随便写篇博客并打个标签试试吧！
+    <button
+      type="button"
+      :class="{ active: selectedTag === '' }"
+      @click="selectedTag = ''"
+    >
+      <span>全部文章</span>
+    </button>
+
+    <button
+      v-for="tag in allTags"
+      :key="tag"
+      type="button"
+      :class="{ active: selectedTag === tag }"
+      @click="selectedTag = tag"
+    >
+      <span># {{ tag }}</span>
+    </button>
   </div>
 
-  <!-- 文章卡片 -->
-  <article
-    v-for="post in filteredPosts"
-    :key="post.path"
-    class="post-item"
-  >
-    <div class="post-meta">
-      <span class="post-date">
-        📅 {{ post.date || '暂无日期' }}
-      </span>
-    </div>
+  <!-- 文章列表 -->
+  <div class="post-list">
 
-    <!--
-      使用 withBase 自动加上 /my-blog/。
-      例如 /posts/1 会转换为 /my-blog/posts/1。
-    -->
-    <a
-      :href="withBase(post.path)"
-      class="post-title"
-    >
-      {{ post.title || '未命名文章' }}
-    </a>
-
+    <!-- 没有文章时的提示 -->
     <div
-      v-if="post.tags && post.tags.length > 0"
-      class="post-tags"
+      v-if="filteredPosts.length === 0"
+      class="no-posts"
     >
-      <span
-        v-for="tag in post.tags"
-        :key="tag"
-        class="tag-badge"
-      >
-        # {{ tag }}
-      </span>
+      🌟 📋 提示：你目前还没有在 GitHub Issues
+      中发布任何公开文章。快去你的仓库新建一个议题（Issue），
+      随便写篇博客并打个标签试试吧！
     </div>
-  </article>
+
+    <!-- 单篇文章 -->
+    <article
+      v-for="post in filteredPosts"
+      :key="post.path"
+      class="post-item"
+    >
+      <div class="post-meta">
+        <span class="post-date">
+          📅 {{ post.date || '暂无日期' }}
+        </span>
+      </div>
+
+      <a
+        :href="withBase(post.path)"
+        class="post-title"
+      >
+        {{ post.title || '未命名文章' }}
+      </a>
+
+      <div
+        v-if="Array.isArray(post.tags) && post.tags.length > 0"
+        class="post-tags"
+      >
+        <span
+          v-for="tag in post.tags"
+          :key="tag"
+          class="tag-badge"
+        >
+          # {{ tag }}
+        </span>
+      </div>
+    </article>
+
+  </div>
 
 </div>
 
-<style scoped>
+<style>
+.blog-page {
+  width: 100%;
+}
+
+/* 页面标题 */
+.blog-heading {
+  margin: 0 0 30px;
+  padding: 0;
+  border: 0;
+  font-size: 2.2em;
+  line-height: 1.3;
+  color: var(--vp-c-text-1);
+}
+
 /* 标签筛选区域 */
 .tag-container {
   margin: 30px 0;
@@ -164,7 +184,7 @@ const filteredPosts = computed(() => {
   padding: 40px 0;
   color: var(--vp-c-text-2);
   font-style: italic;
-  line-height: 1.6;
+  line-height: 1.8;
 }
 
 /* 单篇文章 */
@@ -211,5 +231,16 @@ const filteredPosts = computed(() => {
   background: var(--vp-c-brand-3);
   color: var(--vp-c-brand-1);
   font-size: 0.8em;
+}
+
+/* 手机适配 */
+@media (max-width: 640px) {
+  .blog-heading {
+    font-size: 1.8em;
+  }
+
+  .post-title {
+    font-size: 1.15em;
+  }
 }
 </style>
