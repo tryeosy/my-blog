@@ -1,12 +1,10 @@
 name: Deploy VitePress Blog
 
 on:
-  # 修改代码并提交到 main 分支时，自动部署
   push:
     branches:
       - main
 
-  # Issue 发生变化时，自动部署
   issues:
     types:
       - opened
@@ -17,17 +15,14 @@ on:
       - labeled
       - unlabeled
 
-  # 保留 Actions 页面中的手动运行按钮
   workflow_dispatch:
 
-# 工作流所需权限
 permissions:
   contents: read
   issues: read
   pages: write
   id-token: write
 
-# 避免连续修改时同时运行多个部署任务
 concurrency:
   group: github-pages
   cancel-in-progress: true
@@ -40,6 +35,15 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
+    env:
+      SITE_URL: ${{ vars.SITE_URL }}
+      SITE_BASE: ${{ vars.SITE_BASE }}
+      VITE_GA_ID: ${{ vars.VITE_GA_ID }}
+      VITE_GISCUS_REPO: ${{ vars.VITE_GISCUS_REPO }}
+      VITE_GISCUS_REPO_ID: ${{ vars.VITE_GISCUS_REPO_ID }}
+      VITE_GISCUS_CATEGORY: ${{ vars.VITE_GISCUS_CATEGORY }}
+      VITE_GISCUS_CATEGORY_ID: ${{ vars.VITE_GISCUS_CATEGORY_ID }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,8 +53,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install VitePress
-        run: npm install vitepress vue
+      - name: Install dependencies
+        run: npm install vitepress@1.6.4 vue @giscus/vue@3.1.1
 
       - name: Fetch Issues to Markdown
         run: node fetch-issues.js
