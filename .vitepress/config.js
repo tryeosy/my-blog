@@ -57,7 +57,14 @@ export default defineConfig({
     hostname: siteUrl
   },
 
-  head: [
+  head: [  [
+    'link',
+    {
+      rel: 'icon',
+      type: 'image/svg+xml',
+      href: `${base}favicon.svg`
+    }
+  ],
     ['meta', { name: 'author', content: 'tryeosy' }],
     ['meta', { name: 'robots', content: 'index, follow' }],
     [
