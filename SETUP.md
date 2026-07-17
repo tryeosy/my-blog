@@ -1,3 +1,6 @@
+---
+search: false
+---
 # VitePress 博客增强包使用说明
 
 这个增强包会增加：
