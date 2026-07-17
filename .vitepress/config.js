@@ -192,8 +192,9 @@ export default defineConfig({
     ],
 
     search: {
-      provider: 'local'
-        options: {
+       provider: 'local',
+
+  options: {
     miniSearch: {
       searchOptions: {
         // 允许一定程度的模糊匹配
