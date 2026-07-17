@@ -45,7 +45,45 @@ gtag('config', '${gaId}');`
       ]
     ]
   : []
+function tokenizeForSearch(text) {
+  const parts =
+    String(text)
+      .toLowerCase()
+      .match(/[\p{Script=Han}]+|[a-z0-9_+#.-]+/gu) || []
 
+  const tokens = []
+
+  for (const part of parts) {
+    // 中文连续文本
+    if (/^\p{Script=Han}+$/u.test(part)) {
+      const chars = Array.from(part)
+
+      // 同时生成单字、双字和三字组合
+      // 例如“自动更新”会生成：
+      // 自、动、更、新、自动、动更、更新、自动更、动更新
+      for (
+        let length = 1;
+        length <= Math.min(3, chars.length);
+        length++
+      ) {
+        for (
+          let i = 0;
+          i <= chars.length - length;
+          i++
+        ) {
+          tokens.push(
+            chars.slice(i, i + length).join('')
+          )
+        }
+      }
+    } else {
+      // 英文、数字等
+      tokens.push(part)
+    }
+  }
+
+  return [...new Set(tokens)]
+}
 export default defineConfig({
   base,
   lang: 'zh-CN',
