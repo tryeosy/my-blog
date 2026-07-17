@@ -197,13 +197,13 @@ export default defineConfig({
   options: {
     miniSearch: {
       searchOptions: {
-        // 允许一定程度的模糊匹配
+        // 支持少量模糊匹配
         fuzzy: 0.2,
 
-        // 允许输入部分文字进行匹配
+        // 输入部分文字也可以匹配
         prefix: true,
 
-        // 标题匹配优先于正文匹配
+        // 文章标题的匹配权重高于正文
         boost: {
           title: 10,
           text: 2,
@@ -212,27 +212,29 @@ export default defineConfig({
       }
     },
 
-    // 把 Frontmatter 中的文章标题也加入搜索索引
-    // 这里只影响搜索索引，不会在文章页面重复显示标题
-    async _render(src, env, md) {
-      const html = await md.renderAsync(src, env)
+    // 将 Frontmatter 中的文章标题和正文一起加入搜索索引
+    _render(src, env, md) {
+      // VitePress 1.6.4 必须使用 md.render
+      const html = md.render(src, env)
 
-      // 不索引 search: false 的页面
+      // 排除设置了 search: false 的页面
       if (env.frontmatter?.search === false) {
         return ''
       }
 
       const title = env.frontmatter?.title
 
-      if (!title) {
-        return html
+      // 只给自动生成的文章页面补充标题索引
+      if (
+        title &&
+        env.relativePath.startsWith('posts/')
+      ) {
+        const safeTitle = String(title).replace(/\n/g, ' ')
+
+        return md.render(`# ${safeTitle}`) + html
       }
 
-      const titleHtml = await md.renderAsync(
-        `# ${String(title).replace(/\n/g, ' ')}\n\n`
-      )
-
-      return titleHtml + html
+      return html
     },
 
     locales: {
