@@ -1,0 +1,9 @@
+{
+  "name": "my-github-blog",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "node fetch-issues.js && vitepress build",
+    "serve": "vitepress preview"
+  }
+}
