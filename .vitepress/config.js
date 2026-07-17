@@ -178,7 +178,10 @@ export default defineConfig({
 
     nav: [
       { text: '首页', link: '/' },
-      { text: 'RSS', link: '/rss.xml' }
+      {
+    text: 'RSS',
+    link: 'https://tryeosy.github.io/my-blog/rss.xml'
+  }
     ],
 
     search: {
