@@ -194,47 +194,22 @@ export default defineConfig({
     search: {
        provider: 'local',
 
-  options: {
+options: {
+    // 默认打开详细结果，但右上角列表开关仍然保留
+    detailedView: true,
+
     miniSearch: {
       searchOptions: {
-        // 支持少量模糊匹配
         fuzzy: 0.2,
-
-        // 输入部分文字也可以匹配
         prefix: true,
 
-        // 文章标题的匹配权重高于正文
+        // 标题权重较高，正文同样参与搜索
         boost: {
-          title: 10,
-          text: 2,
-          titles: 4
+          title: 8,
+          text: 3,
+          titles: 2
         }
       }
-    },
-
-    // 将 Frontmatter 中的文章标题和正文一起加入搜索索引
-    _render(src, env, md) {
-      // VitePress 1.6.4 必须使用 md.render
-      const html = md.render(src, env)
-
-      // 排除设置了 search: false 的页面
-      if (env.frontmatter?.search === false) {
-        return ''
-      }
-
-      const title = env.frontmatter?.title
-
-      // 只给自动生成的文章页面补充标题索引
-      if (
-        title &&
-        env.relativePath.startsWith('posts/')
-      ) {
-        const safeTitle = String(title).replace(/\n/g, ' ')
-
-        return md.render(`# ${safeTitle}`) + html
-      }
-
-      return html
     },
 
     locales: {
