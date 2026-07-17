@@ -7,13 +7,12 @@ import { ref, computed } from 'vue'
 import { withBase } from 'vitepress'
 import postsData from './.vitepress/posts-data.json'
 
-// 当前选中的标签
 const selectedTag = ref('')
 
-// 确保文章数据是数组
-const posts = Array.isArray(postsData) ? postsData : []
+const posts = Array.isArray(postsData)
+  ? postsData
+  : []
 
-// 获取全部不重复标签
 const allTags = computed(() => {
   const tags = new Set()
 
@@ -30,7 +29,6 @@ const allTags = computed(() => {
   return Array.from(tags)
 })
 
-// 按标签筛选文章
 const filteredPosts = computed(() => {
   if (!selectedTag.value) {
     return posts
@@ -44,34 +42,14 @@ const filteredPosts = computed(() => {
     )
   })
 })
-
-// 生成适用于 GitHub Pages 的文章地址
-const getPostLink = (postPath) => {
-  if (!postPath) {
-    return withBase('/')
-  }
-
-  const path = postPath.endsWith('.html')
-    ? postPath
-    : `${postPath}.html`
-
-  return withBase(path)
-}
 </script>
 
-<main class="blog-page">
-
-  <section class="blog-header">
+<div class="blog-page">
+  <div class="blog-header">
     <h1>🚀 欢迎来到我的独立博客</h1>
     <p>记录学习、技术与生活中的点滴。</p>
-  </section>
-
-  <!-- 标签筛选 -->
-  <nav
-    v-if="allTags.length > 0"
-    class="tag-container"
-    aria-label="文章标签筛选"
-  >
+  </div>
+  <div v-if="allTags.length > 0" class="tag-container">
     <button
       type="button"
       :class="{ active: selectedTag === '' }"
@@ -79,7 +57,6 @@ const getPostLink = (postPath) => {
     >
       全部文章
     </button>
-
     <button
       v-for="tag in allTags"
       :key="tag"
@@ -87,25 +64,20 @@ const getPostLink = (postPath) => {
       :class="{ active: selectedTag === tag }"
       @click="selectedTag = tag"
     >
-      <span># {{ tag }}</span>
+      <span>&#35; {{ tag }}</span>
     </button>
-  </nav>
-
-  <!-- 没有文章 -->
+  </div>
   <div
     v-if="filteredPosts.length === 0"
     class="no-posts"
   >
-    🌟 暂时没有找到文章。请确认 GitHub Issue 处于 Open 状态，
-    并等待 Actions 重新部署完成。
+    🌟 暂时没有找到文章。请确认 GitHub Issue 处于 Open 状态，并等待 Actions 重新部署完成。
   </div>
-
-  <!-- 文章列表 -->
-  <section
-    v-else
+  <div
+    v-if="filteredPosts.length > 0"
     class="post-list"
   >
-    <article
+    <div
       v-for="post in filteredPosts"
       :key="post.path"
       class="post-item"
@@ -113,16 +85,14 @@ const getPostLink = (postPath) => {
       <div class="post-date">
         📅 {{ post.date || '暂无日期' }}
       </div>
-
       <a
-        :href="getPostLink(post.path)"
+        :href="withBase(post.path)"
         class="post-title"
       >
         {{ post.title || '未命名文章' }}
       </a>
-
       <div
-        v-if="Array.isArray(post.tags) && post.tags.length > 0"
+        v-if="post.tags && post.tags.length > 0"
         class="post-tags"
       >
         <span
@@ -130,15 +100,14 @@ const getPostLink = (postPath) => {
           :key="tag"
           class="tag-badge"
         >
-          # {{ tag }}
+          &#35; {{ tag }}
         </span>
       </div>
-    </article>
-  </section>
+    </div>
+  </div>
+</div>
 
-</main>
-
-<style>
+<style scoped>
 .blog-page {
   width: 100%;
   max-width: 960px;
@@ -148,23 +117,23 @@ const getPostLink = (postPath) => {
 }
 
 .blog-header {
-  margin-bottom: 36px;
+  margin-bottom: 34px;
 }
 
 .blog-header h1 {
   margin: 0 0 12px;
   padding: 0;
   border: none;
-  font-size: 38px;
-  line-height: 1.35;
-  font-weight: 800;
   color: var(--vp-c-text-1);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.35;
 }
 
 .blog-header p {
   margin: 0;
-  font-size: 16px;
   color: var(--vp-c-text-2);
+  font-size: 16px;
 }
 
 .tag-container {
@@ -220,8 +189,8 @@ const getPostLink = (postPath) => {
   width: fit-content;
   color: var(--vp-c-text-1);
   font-size: 27px;
-  line-height: 1.4;
   font-weight: 700;
+  line-height: 1.4;
   text-decoration: none;
   transition: color 0.2s ease;
 }
