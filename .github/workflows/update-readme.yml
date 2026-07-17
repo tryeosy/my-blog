@@ -1,27 +1,9 @@
-name: Update README with Issues
-
-on:
-  issues:
-    types: [opened, edited, deleted, labeled, unlabeled, milestones]
-  workflow_dispatch:
-
-jobs:
-  update-readme:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Update README List
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. 使用 ${{ github.repository }} 动态获取当前仓库，绝对不会认错
-          gh issue list --repo "${{ github.repository }}" --limit 10 --json title,url,createdAt --template '{{range .}}- [{{.title}}]({{.url}}) — _{{substring .createdAt 0 10}}_\n{{end}}' > list.txt
+          # 1. 获取 issues 列表，并在 shell 中处理日期格式 (只保留前 10 位，即 YYYY-MM-DD)
+          gh issue list --repo "${{ github.repository }}" --limit 10 --json title,url,createdAt --jq '.[] | "- [\(.title)](\(.url)) — _\(.createdAt | sub("T.*"; ""))_"' > list.txt
 
           # 如果没有文章，则写入默认提示
           if [ ! -s list.txt ]; then
@@ -29,11 +11,11 @@ jobs:
           fi
 
           # 2. 将列表插入到 README.md 对应的锚点中
-          sed -i '/<!-- BLOG-LIST-START -->/,/<!-- BLOG-LIST-END -->/{//!d;};/<!-- BLOG-LIST-START -->/r list.txt' README.md
+          sed -i '//,//{//!d;};//r list.txt' README.md
 
           # 3. 提交并推送
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@://github.com"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
           git commit -m "chore: update blog list [skip ci]" || echo "No changes to commit"
           git push
