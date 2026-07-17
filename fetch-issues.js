@@ -1,19 +1,134 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'fs'
+import path from 'path'
 
-// GitHub 用户名和仓库名
-// 你的用户名从截图看是 tryeosy，不是 tryeasy
-const REPO = 'tryeosy/my-blog';
+const REPO = 'tryeosy/my-blog'
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 
-// GitHub Actions 中可以自动读取 GITHUB_TOKEN
-// 公开仓库即使没有 Token，通常也能正常获取 Issues
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const SITE_URL = (
+  process.env.SITE_URL?.trim() ||
+  'https://tryeosy.github.io/my-blog'
+).replace(/\/+$/, '')
+
+const postsDir = path.resolve('posts')
+const vpDir = path.resolve('.vitepress')
+const publicDir = path.resolve('public')
+
+function ensureDir(dir) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true })
+  }
+}
+
+function escapeXml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;')
+}
+
+function stripMarkdown(value = '') {
+  return String(value)
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[*_~>|-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function makeExcerpt(body, maxLength = 180) {
+  const text = stripMarkdown(body)
+
+  if (text.length <= maxLength) {
+    return text || '暂无摘要'
+  }
+
+  return `${text.slice(0, maxLength).trim()}……`
+}
+
+function postUrl(issueNumber) {
+  return `${SITE_URL}/posts/${issueNumber}.html`
+}
+
+async function fetchAllOpenIssues(headers) {
+  const allIssues = []
+  let page = 1
+
+  while (true) {
+    const url =
+      `https://api.github.com/repos/${REPO}/issues` +
+      `?state=open&per_page=100&page=${page}`
+
+    console.log(`[接口] ${url}`)
+
+    const res = await fetch(url, { headers })
+
+    if (!res.ok) {
+      const message = await res.text()
+      throw new Error(
+        `GitHub API 请求失败：${res.status} ${res.statusText}\n${message}`
+      )
+    }
+
+    const batch = await res.json()
+
+    if (!Array.isArray(batch)) {
+      throw new Error('GitHub API 返回的数据不是数组。')
+    }
+
+    allIssues.push(...batch)
+
+    if (batch.length < 100) {
+      break
+    }
+
+    page += 1
+  }
+
+  return allIssues
+}
+
+function createRss(postsMetadata) {
+  const buildDate = new Date().toUTCString()
+  const items = postsMetadata
+    .map((post) => {
+      const tags = post.tags
+        .map((tag) => `    <category>${escapeXml(tag)}</category>`)
+        .join('\n')
+
+      return `  <item>
+    <title>${escapeXml(post.title)}</title>
+    <link>${escapeXml(post.url)}</link>
+    <guid isPermaLink="true">${escapeXml(post.url)}</guid>
+    <pubDate>${escapeXml(post.pubDate)}</pubDate>
+    <description>${escapeXml(post.description)}</description>
+${tags}
+  </item>`
+    })
+    .join('\n')
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>我的个人博客</title>
+  <link>${escapeXml(SITE_URL)}</link>
+  <description>记录学习、技术与生活中的点滴。</description>
+  <language>zh-CN</language>
+  <lastBuildDate>${escapeXml(buildDate)}</lastBuildDate>
+  <atom:link href="${escapeXml(`${SITE_URL}/rss.xml`)}" rel="self" type="application/rss+xml" />
+${items}
+</channel>
+</rss>
+`
+}
 
 async function fetchIssues() {
-  // 正确的 GitHub Issues API 地址
-  const url =
-    `https://api.github.com/repos/${REPO}/issues?state=open&per_page=100`;
-
   const headers = {
     'User-Agent': 'VitePress-Blog-Bot',
     Accept: 'application/vnd.github+json',
@@ -21,145 +136,121 @@ async function fetchIssues() {
     ...(GITHUB_TOKEN
       ? { Authorization: `Bearer ${GITHUB_TOKEN}` }
       : {})
-  };
-
-  // 创建文章目录
-  const postsDir = path.resolve('posts');
-  if (!fs.existsSync(postsDir)) {
-    fs.mkdirSync(postsDir, { recursive: true });
   }
 
-  // 创建 VitePress 配置目录
-  const vpDir = path.resolve('.vitepress');
-  if (!fs.existsSync(vpDir)) {
-    fs.mkdirSync(vpDir, { recursive: true });
-  }
+  ensureDir(postsDir)
+  ensureDir(vpDir)
+  ensureDir(publicDir)
 
-  // 保存所有文章的元数据
-  const postsMetadata = [];
+  const postsMetadata = []
 
   try {
-    console.log(`[开始] 正在从 ${REPO} 获取 GitHub Issues...`);
-    console.log(`[接口] ${url}`);
+    console.log(`[开始] 正在从 ${REPO} 获取 GitHub Issues……`)
 
-    const res = await fetch(url, { headers });
+    const issues = await fetchAllOpenIssues(headers)
 
-    // GitHub API 返回非正常状态码时，主动抛出错误
-    if (!res.ok) {
-      const errorText = await res.text();
-
-      throw new Error(
-        `GitHub API 请求失败：${res.status} ${res.statusText}\n${errorText}`
-      );
-    }
-
-    const issues = await res.json();
-
-    if (!Array.isArray(issues)) {
-      throw new Error('GitHub API 返回的数据不是 Issues 数组。');
-    }
-
-    issues.forEach((issue) => {
-      // GitHub 的 Pull Request 也可能出现在 Issues API 中，需要排除
+    for (const issue of issues) {
       if (issue.pull_request) {
-        return;
+        continue
       }
 
-      // 提取标签
       const tags = Array.isArray(issue.labels)
         ? issue.labels
-            .map((label) => {
-              if (typeof label === 'string') {
-                return label;
-              }
-
-              return label.name;
-            })
+            .map((label) =>
+              typeof label === 'string'
+                ? label
+                : label?.name
+            )
             .filter(Boolean)
-        : [];
+        : []
 
-      // 提取创建日期
+      const title = issue.title || '未命名文章'
       const date = issue.created_at
         ? issue.created_at.split('T')[0]
-        : '';
+        : ''
+      const updated = issue.updated_at
+        ? issue.updated_at.split('T')[0]
+        : date
+      const description = makeExcerpt(issue.body || '')
+      const url = postUrl(issue.number)
 
-      // 生成 Markdown 文件的 Front Matter
       const frontMatter = [
         '---',
-        `title: ${JSON.stringify(issue.title || '未命名文章')}`,
+        `title: ${JSON.stringify(title)}`,
+        `description: ${JSON.stringify(description)}`,
         `date: ${JSON.stringify(date)}`,
+        `updated: ${JSON.stringify(updated)}`,
         `tags: ${JSON.stringify(tags)}`,
+        `issueNumber: ${issue.number}`,
+        `source: ${JSON.stringify(issue.html_url || '')}`,
         '---',
         ''
-      ].join('\n');
-
-      // 每一个 Issue 生成一个 Markdown 文件
-      const markdownPath = path.join(
-        postsDir,
-        `${issue.number}.md`
-      );
+      ].join('\n')
 
       fs.writeFileSync(
-        markdownPath,
+        path.join(postsDir, `${issue.number}.md`),
         `${frontMatter}\n${issue.body || ''}\n`,
         'utf-8'
-      );
+      )
 
-      // 添加到博客文章列表
       postsMetadata.push({
-        title: issue.title || '未命名文章',
+        title,
         path: `/posts/${issue.number}`,
+        url,
         date,
+        updated,
         tags,
-        number: issue.number
-      });
+        description,
+        number: issue.number,
+        pubDate: issue.created_at
+          ? new Date(issue.created_at).toUTCString()
+          : new Date().toUTCString()
+      })
 
       console.log(
-        `[文章] 已生成 posts/${issue.number}.md：${issue.title}`
-      );
-    });
-
-    // 按发布时间从新到旧排列
-    postsMetadata.sort((a, b) => {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
-    });
-
-    if (postsMetadata.length === 0) {
-      console.warn(
-        '警告：没有找到可以生成博客的公开 Issue。请确认 Issue 处于 Open 状态。'
-      );
+        `[文章] 已生成 posts/${issue.number}.md：${title}`
+      )
     }
+
+    postsMetadata.sort((a, b) => {
+      return new Date(b.date).getTime() -
+        new Date(a.date).getTime()
+    })
   } catch (error) {
-    console.error(
-      '网络请求或文章生成发生错误，将使用空数据进行兜底打包：'
-    );
-
-    console.error(error);
+    console.error('抓取或生成文章时发生错误：')
+    console.error(error)
+    process.exitCode = 1
   } finally {
-    // 无论请求是否成功，都生成 posts-data.json
-    // 防止 VitePress 因文件不存在而打包失败
-    const metadataPath = path.join(
-      vpDir,
-      'posts-data.json'
-    );
-
     fs.writeFileSync(
-      metadataPath,
+      path.join(vpDir, 'posts-data.json'),
       JSON.stringify(postsMetadata, null, 2),
       'utf-8'
-    );
+    )
+
+    fs.writeFileSync(
+      path.join(publicDir, 'rss.xml'),
+      createRss(postsMetadata),
+      'utf-8'
+    )
+
+    fs.writeFileSync(
+      path.join(publicDir, 'robots.txt'),
+      [
+        'User-agent: *',
+        'Allow: /',
+        `Sitemap: ${SITE_URL}/sitemap.xml`,
+        ''
+      ].join('\n'),
+      'utf-8'
+    )
 
     console.log(
-      `[完成] 本次数据准备完毕，共包含 ${postsMetadata.length} 篇文章。`
-    );
-
-    console.log(
-      `[完成] 文章索引已写入：${metadataPath}`
-    );
+      `[完成] 共生成 ${postsMetadata.length} 篇文章、RSS 和 robots.txt。`
+    )
   }
 }
 
 fetchIssues().catch((error) => {
-  console.error('脚本执行失败：', error);
-  process.exitCode = 1;
-});
+  console.error('脚本执行失败：', error)
+  process.exitCode = 1
+})
