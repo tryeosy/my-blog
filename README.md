@@ -2,7 +2,7 @@
 ## 📝 最新文章
 
 <!-- BLOG-LIST-START -->
-- [我的测试博客](https://github.com/tryeosy/my-blog/issues/1) — _2026-07-17_
+- [我的测试博客](https://github.com/tryeosy/my-blog/issues/1) — 🏷️ test — _2026-07-17_
 <!-- BLOG-LIST-END -->
 
 
