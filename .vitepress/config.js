@@ -49,8 +49,8 @@ gtag('config', '${gaId}');`
 export default defineConfig({
   base,
   lang: 'zh-CN',
-  title: '我的个人博客',
-  titleTemplate: ':title | 我的个人博客',
+  title: 'tryeosy的一隅',
+  titleTemplate: ':title | tryeosy的一隅',
   description: '记录学习、技术与生活中的点滴。',
 
   sitemap: {
