@@ -193,6 +193,75 @@ export default defineConfig({
 
     search: {
       provider: 'local'
+        options: {
+    miniSearch: {
+      searchOptions: {
+        // 允许一定程度的模糊匹配
+        fuzzy: 0.2,
+
+        // 允许输入部分文字进行匹配
+        prefix: true,
+
+        // 标题匹配优先于正文匹配
+        boost: {
+          title: 10,
+          text: 2,
+          titles: 4
+        }
+      }
+    },
+
+    // 把 Frontmatter 中的文章标题也加入搜索索引
+    // 这里只影响搜索索引，不会在文章页面重复显示标题
+    async _render(src, env, md) {
+      const html = await md.renderAsync(src, env)
+
+      // 不索引 search: false 的页面
+      if (env.frontmatter?.search === false) {
+        return ''
+      }
+
+      const title = env.frontmatter?.title
+
+      if (!title) {
+        return html
+      }
+
+      const titleHtml = await md.renderAsync(
+        `# ${String(title).replace(/\n/g, ' ')}\n\n`
+      )
+
+      return titleHtml + html
+    },
+
+    locales: {
+      root: {
+        translations: {
+          button: {
+            buttonText: '搜索',
+            buttonAriaLabel: '搜索'
+          },
+
+          modal: {
+            displayDetails: '显示详细结果',
+            resetButtonTitle: '清除搜索',
+            backButtonTitle: '关闭搜索',
+            noResultsText: '没有找到相关文章',
+
+            footer: {
+              selectText: '打开',
+              selectKeyAriaLabel: '回车',
+              navigateText: '选择',
+              navigateUpKeyAriaLabel: '上箭头',
+              navigateDownKeyAriaLabel: '下箭头',
+              closeText: '关闭',
+              closeKeyAriaLabel: 'ESC'
+            }
+          }
+        }
+      }
+    }
+  }
     },
 
     footer: {
