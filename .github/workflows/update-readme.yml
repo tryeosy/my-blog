@@ -20,17 +20,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. 安全地以 JSON 格式提取 Issues 并使用 jq 进行完美的清洗与格式化，彻底解决制表符乱码问题
-          gh issue list --repo "${{ github.repository }}" --limit 10 --json title,url,createdAt \
-
-            | jq -r '.[] | "- [\(.title)](\(.url)) — _" + (.createdAt | .[0:10]) + "_"' > list.txt
+          # 1. 严格单行：使用 gh 获取 JSON 并通过 jq 完美格式化（去除了所有错误的换行）
+          gh issue list --repo "${{ github.repository }}" --limit 10 --json title,url,createdAt | jq -r '.[] | "- [\(.title)](\(.url)) — _" + (.createdAt | .[0:10]) + "_"' > list.txt
 
           # 如果没有文章，则写入默认提示
           if [ ! -s list.txt ]; then
             echo "- 暂无文章" > list.txt
           fi
 
-          # 2. 将干净的列表插入到 README.md 对应的锚点中
+          # 2. 将列表插入到 README.md 对应的锚点中
           sed -i '/<!-- BLOG-LIST-START -->/,/<!-- BLOG-LIST-END -->/{//!d;};/<!-- BLOG-LIST-START -->/r list.txt' README.md
 
           # 3. 提交并推送
