@@ -2,6 +2,7 @@
 ## 📝 最新文章
 
 <!-- BLOG-LIST-START -->
+- [如何轻松搭建一个博客](https://github.com/tryeosy/my-blog/issues/2) — _2026-07-20_
 - [我的测试博客](https://github.com/tryeosy/my-blog/issues/1) — 🏷️ test 🏷️ github-actions — _2026-07-17_
 <!-- BLOG-LIST-END -->
 
