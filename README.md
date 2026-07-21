@@ -2,6 +2,7 @@
 ## 📝 最新文章
 
 <!-- BLOG-LIST-START -->
+- [嘉立创学习PCB的日子](https://github.com/tryeosy/my-blog/issues/3) — _2026-07-21_
 - [新手0基础！！如何利用github轻松搭建一个博客](https://github.com/tryeosy/my-blog/issues/2) — _2026-07-20_
 - [我的测试博客](https://github.com/tryeosy/my-blog/issues/1) — 🏷️ test 🏷️ github-actions — _2026-07-17_
 <!-- BLOG-LIST-END -->
