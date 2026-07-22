@@ -228,9 +228,7 @@ export default defineConfig({
     link: 'https://tryeosy.github.io/my-blog/rss.xml'
   }
     ],
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com' }
-    ]
+  
     search: {
        provider: 'local',
 
