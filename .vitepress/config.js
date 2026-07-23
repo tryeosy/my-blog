@@ -90,6 +90,9 @@ export default defineConfig({
   title: 'tryeosy的一隅',
   titleTemplate: ':title | tryeosy的一隅',
   description: '记录学习、技术与生活中的点滴。',
+  markdown: {
+  breaks: true
+},
 
   sitemap: {
     hostname: siteUrl
