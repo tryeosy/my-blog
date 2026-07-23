@@ -228,6 +228,15 @@ export default defineConfig({
     link: 'https://tryeosy.github.io/my-blog/rss.xml'
   }
     ],
+
+    socialLinks: [
+  {
+    icon: 'github',
+    link: 'https://github.com/tryeosy/my-blog',
+    ariaLabel: 'GitHub 博客仓库',
+    target: '_self'
+  }
+],
   
     search: {
        provider: 'local',
