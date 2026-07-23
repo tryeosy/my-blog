@@ -39,10 +39,12 @@ jobs:
       SITE_URL: ${{ vars.SITE_URL }}
       SITE_BASE: ${{ vars.SITE_BASE }}
       VITE_GA_ID: ${{ vars.VITE_GA_ID }}
+      VITE_STATS_API_URL: ${{ vars.VITE_STATS_API_URL }}
       VITE_GISCUS_REPO: ${{ vars.VITE_GISCUS_REPO }}
       VITE_GISCUS_REPO_ID: ${{ vars.VITE_GISCUS_REPO_ID }}
       VITE_GISCUS_CATEGORY: ${{ vars.VITE_GISCUS_CATEGORY }}
       VITE_GISCUS_CATEGORY_ID: ${{ vars.VITE_GISCUS_CATEGORY_ID }}
+     
 
     steps:
       - name: Checkout code
