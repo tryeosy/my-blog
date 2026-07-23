@@ -14,3 +14,53 @@
   color: var(--vp-c-text-2);
   font-size: 14px;
 }
+
+/* 文章阅读量和点赞 */
+.article-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.article-stats-divider {
+  color: var(--vp-c-divider);
+}
+
+.article-like-button {
+  padding: 3px 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-2);
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.article-like-button:hover:not(:disabled) {
+  border-color: var(--vp-c-brand-1);
+  color: var(--vp-c-brand-1);
+}
+
+.article-like-button.liked {
+  border-color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  cursor: default;
+}
+
+.article-like-button:disabled {
+  opacity: 1;
+}
+
+.article-stats-error {
+  color: var(--vp-c-danger-1);
+}
